@@ -45,6 +45,7 @@ Level 1: PID 基礎          → PoC 1 (溫度控制)
 Level 2: Kalman Filter 基礎 → PoC 2 (感測器濾波)
 Level 3: PID + KF 整合      → PoC 3 (馬達控制)
 Level 4: EKF 進階           → PoC 4 (姿態估測)
+Level 5: 進階應用 — 倒單擺  → 完整指南 (物理建模 → LQR → 實作)
 ```
 
 ### 1.3 前置知識
@@ -2212,7 +2213,10 @@ gcc -Wall -O2 -o benchmark tests/benchmark.c pid.c kalman.c ekf_attitude.c -lm &
 
 ```
 pid_kalman_poc/
-├── README.md                    ← 本文件
+├── README.md                    ← 專案總覽與教學
+├── PID_KalmanFilter_Teaching_PoC.md ← 本文件
+├── Inverted_Pendulum_Guide.md   ← Level 5: 倒單擺控制完整指南
+├── inverted_pendulum_circuit.drawio ← Level 5: 電路圖 (DrawIO)
 ├── verify_all.sh                ← Claude Code 驗證主腳本
 │
 ├── pid.h                        ← PID 控制器標頭

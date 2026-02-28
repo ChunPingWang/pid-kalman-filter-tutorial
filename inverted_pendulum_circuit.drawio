@@ -1,0 +1,325 @@
+<mxfile host="app.diagrams.net" modified="2026-02-28T00:00:00.000Z" agent="Claude" version="21.0.0">
+  <diagram id="inverted-pendulum-circuit" name="Inverted Pendulum Circuit">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title1" value="&lt;b&gt;倒單擺控制系統電路圖 (Inverted Pendulum Control System)&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="600" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== POWER SUPPLY SECTION ==================== -->
+        <mxCell id="power_group" value="&lt;b&gt;電源模組 (Power Supply)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontSize=13;fontStyle=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="280" height="260" as="geometry"/>
+        </mxCell>
+
+        <!-- 12V DC Power -->
+        <mxCell id="dc12v" value="&lt;b&gt;12V 3A DC&lt;/b&gt;&lt;br&gt;Power Adapter" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="120" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Capacitor C1 -->
+        <mxCell id="cap_100uf" value="&lt;b&gt;C1&lt;/b&gt;&lt;br&gt;100μF/25V&lt;br&gt;電解電容" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=8;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="200" width="70" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- AMS1117-3.3V -->
+        <mxCell id="ams1117" value="&lt;b&gt;AMS1117-3.3V&lt;/b&gt;&lt;br&gt;LDO 穩壓器&lt;br&gt;IN → OUT 3.3V" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="155" y="200" width="140" height="55" as="geometry"/>
+        </mxCell>
+
+        <!-- Capacitor C2 -->
+        <mxCell id="cap_10uf" value="&lt;b&gt;C2&lt;/b&gt;&lt;br&gt;10μF&lt;br&gt;去耦電容" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=8;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="275" width="60" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Power connections -->
+        <mxCell id="pw1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeWidth=2;strokeColor=#CC0000;" edge="1" source="dc12v" target="cap_100uf" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="pw1_label" value="12V" style="edgeLabel;html=1;fontSize=10;fontColor=#CC0000;" vertex="1" connectable="0" parent="pw1">
+          <mxGeometry x="-0.2" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="pw2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeWidth=2;strokeColor=#CC0000;" edge="1" source="dc12v" target="ams1117" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="pw2_label" value="12V → 3.3V" style="edgeLabel;html=1;fontSize=10;fontColor=#CC0000;" vertex="1" connectable="0" parent="pw2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="pw3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeWidth=1;strokeColor=#9673a6;dashed=1;" edge="1" source="ams1117" target="cap_10uf" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="pw3_label" value="3.3V out" style="edgeLabel;html=1;fontSize=9;fontColor=#9673a6;" vertex="1" connectable="0" parent="pw3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ==================== ESP32 MCU SECTION ==================== -->
+        <mxCell id="esp32_group" value="&lt;b&gt;主控制器 (MCU)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;fontSize=13;fontStyle=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="400" y="80" width="380" height="380" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="esp32" value="&lt;b&gt;ESP32-WROOM-32&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;div style='text-align:left;font-size:10px;'&gt;&lt;b&gt;GPIO 21&lt;/b&gt; → SDA (I2C)&lt;br&gt;&lt;b&gt;GPIO 22&lt;/b&gt; → SCL (I2C)&lt;br&gt;&lt;b&gt;GPIO 25&lt;/b&gt; → PWM_A (Motor)&lt;br&gt;&lt;b&gt;GPIO 26&lt;/b&gt; → IN1 (Motor Dir)&lt;br&gt;&lt;b&gt;GPIO 27&lt;/b&gt; → IN2 (Motor Dir)&lt;br&gt;&lt;b&gt;GPIO 32&lt;/b&gt; → Encoder A&lt;br&gt;&lt;b&gt;GPIO 33&lt;/b&gt; → Encoder B&lt;br&gt;&lt;b&gt;GPIO 34&lt;/b&gt; → Pendulum Enc A&lt;br&gt;&lt;b&gt;GPIO 35&lt;/b&gt; → Pendulum Enc B&lt;br&gt;&lt;b&gt;GPIO 16&lt;/b&gt; → Limit SW Left&lt;br&gt;&lt;b&gt;GPIO 17&lt;/b&gt; → Limit SW Right&lt;br&gt;&lt;b&gt;GPIO 2&lt;/b&gt; → Status LED&lt;br&gt;&lt;b&gt;3V3&lt;/b&gt; → VCC (sensors)&lt;br&gt;&lt;b&gt;GND&lt;/b&gt; → Common GND&lt;/div&gt;" style="shape=mxgraph.electrical.logic_gates.logic_gate_2_input;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;verticalAlign=top;spacingTop=5;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="120" width="300" height="310" as="geometry"/>
+        </mxCell>
+
+        <!-- Pull-up resistors note -->
+        <mxCell id="pullup_note" value="&lt;i&gt;I2C Pull-up:&lt;br&gt;R1, R2 = 4.7kΩ&lt;br&gt;SDA, SCL → 3.3V&lt;/i&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fillColor=#FFF9E6;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="420" y="440" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== IMU SENSOR SECTION ==================== -->
+        <mxCell id="imu_group" value="&lt;b&gt;姿態感測 (IMU Sensor)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;verticalAlign=top;fontSize=13;fontStyle=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="380" width="280" height="180" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="mpu6050" value="&lt;b&gt;MPU6050 (GY-521)&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;div style='text-align:left;font-size:10px;'&gt;&lt;b&gt;VCC&lt;/b&gt; → 3.3V&lt;br&gt;&lt;b&gt;GND&lt;/b&gt; → GND&lt;br&gt;&lt;b&gt;SDA&lt;/b&gt; → GPIO 21&lt;br&gt;&lt;b&gt;SCL&lt;/b&gt; → GPIO 22&lt;br&gt;&lt;b&gt;INT&lt;/b&gt; → (optional GPIO 4)&lt;br&gt;&lt;b&gt;AD0&lt;/b&gt; → GND (Addr: 0x68)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="70" y="420" width="220" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- IMU to ESP32 connection -->
+        <mxCell id="i2c_conn" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#0000CC;dashed=0;" edge="1" source="mpu6050" target="esp32" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="480"/>
+              <mxPoint x="360" y="300"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i2c_label" value="&lt;b&gt;I2C Bus&lt;/b&gt;&lt;br&gt;SDA + SCL" style="edgeLabel;html=1;fontSize=10;fontColor=#0000CC;" vertex="1" connectable="0" parent="i2c_conn">
+          <mxGeometry x="0.1" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ==================== MOTOR DRIVER SECTION ==================== -->
+        <mxCell id="motor_group" value="&lt;b&gt;馬達驅動 (Motor Driver)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;verticalAlign=top;fontSize=13;fontStyle=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="860" y="80" width="340" height="240" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="tb6612" value="&lt;b&gt;TB6612FNG&lt;/b&gt;&lt;br&gt;(或 BTS7960 大電流版)&lt;br&gt;&lt;hr&gt;&lt;div style='text-align:left;font-size:10px;'&gt;&lt;b&gt;VCC&lt;/b&gt; → 3.3V (邏輯)&lt;br&gt;&lt;b&gt;VM&lt;/b&gt; → 12V (馬達電源)&lt;br&gt;&lt;b&gt;GND&lt;/b&gt; → Common GND&lt;br&gt;&lt;b&gt;PWMA&lt;/b&gt; ← GPIO 25&lt;br&gt;&lt;b&gt;AIN1&lt;/b&gt; ← GPIO 26&lt;br&gt;&lt;b&gt;AIN2&lt;/b&gt; ← GPIO 27&lt;br&gt;&lt;b&gt;AO1&lt;/b&gt; → Motor +&lt;br&gt;&lt;b&gt;AO2&lt;/b&gt; → Motor -&lt;br&gt;&lt;b&gt;STBY&lt;/b&gt; → 3.3V (Always ON)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="890" y="120" width="280" height="180" as="geometry"/>
+        </mxCell>
+
+        <!-- ESP32 to Motor Driver -->
+        <mxCell id="pwm_conn" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#FF6600;" edge="1" source="esp32" target="tb6612" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="200"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pwm_label" value="&lt;b&gt;PWM + DIR&lt;/b&gt;&lt;br&gt;GPIO 25,26,27" style="edgeLabel;html=1;fontSize=10;fontColor=#FF6600;" vertex="1" connectable="0" parent="pwm_conn">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ==================== DC MOTOR SECTION ==================== -->
+        <mxCell id="motor_section" value="&lt;b&gt;驅動馬達 (DC Motor + Encoder)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;verticalAlign=top;fontSize=13;fontStyle=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="860" y="370" width="340" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="dc_motor" value="&lt;b&gt;JGA25-371&lt;/b&gt;&lt;br&gt;DC 減速馬達&lt;br&gt;+ 內建光電編碼器&lt;br&gt;&lt;hr&gt;&lt;div style='text-align:left;font-size:10px;'&gt;&lt;b&gt;Motor+&lt;/b&gt; ← AO1&lt;br&gt;&lt;b&gt;Motor-&lt;/b&gt; ← AO2&lt;br&gt;&lt;b&gt;Enc VCC&lt;/b&gt; → 3.3V&lt;br&gt;&lt;b&gt;Enc GND&lt;/b&gt; → GND&lt;br&gt;&lt;b&gt;Enc A&lt;/b&gt; → GPIO 32&lt;br&gt;&lt;b&gt;Enc B&lt;/b&gt; → GPIO 33&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="890" y="410" width="280" height="140" as="geometry"/>
+        </mxCell>
+
+        <!-- Motor Driver to Motor -->
+        <mxCell id="motor_conn" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeWidth=3;strokeColor=#CC0000;" edge="1" source="tb6612" target="dc_motor" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="motor_conn_label" value="&lt;b&gt;Motor Power&lt;/b&gt;&lt;br&gt;AO1, AO2" style="edgeLabel;html=1;fontSize=10;fontColor=#CC0000;" vertex="1" connectable="0" parent="motor_conn">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- Motor Encoder to ESP32 -->
+        <mxCell id="enc_conn" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#009900;dashed=1;" edge="1" source="dc_motor" target="esp32" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="830" y="500"/>
+              <mxPoint x="830" y="400"/>
+              <mxPoint x="740" y="400"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="enc_label" value="&lt;b&gt;Encoder A/B&lt;/b&gt;&lt;br&gt;GPIO 32, 33" style="edgeLabel;html=1;fontSize=10;fontColor=#009900;" vertex="1" connectable="0" parent="enc_conn">
+          <mxGeometry x="0.3" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ==================== PENDULUM ENCODER SECTION ==================== -->
+        <mxCell id="pend_group" value="&lt;b&gt;擺桿角度感測 (Pendulum Encoder)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4E1F5;strokeColor=#3A7BBF;verticalAlign=top;fontSize=13;fontStyle=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="600" width="280" height="160" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pend_enc" value="&lt;b&gt;600P/R 旋轉編碼器&lt;/b&gt;&lt;br&gt;(安裝在擺桿轉軸)&lt;br&gt;&lt;hr&gt;&lt;div style='text-align:left;font-size:10px;'&gt;&lt;b&gt;VCC&lt;/b&gt; → 3.3V&lt;br&gt;&lt;b&gt;GND&lt;/b&gt; → GND&lt;br&gt;&lt;b&gt;A&lt;/b&gt; → GPIO 34&lt;br&gt;&lt;b&gt;B&lt;/b&gt; → GPIO 35&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4E1F5;strokeColor=#3A7BBF;fontSize=11;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="70" y="640" width="220" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Pendulum Encoder to ESP32 -->
+        <mxCell id="penc_conn" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#3A7BBF;dashed=1;" edge="1" source="pend_enc" target="esp32" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="690"/>
+              <mxPoint x="360" y="350"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="penc_label" value="&lt;b&gt;Pend Enc A/B&lt;/b&gt;&lt;br&gt;GPIO 34, 35" style="edgeLabel;html=1;fontSize=10;fontColor=#3A7BBF;" vertex="1" connectable="0" parent="penc_conn">
+          <mxGeometry x="0.4" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ==================== LIMIT SWITCHES ==================== -->
+        <mxCell id="limit_group" value="&lt;b&gt;限位開關 (Limit Switches)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;verticalAlign=top;fontSize=13;fontStyle=1;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="860" y="610" width="340" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="limit_sw" value="&lt;b&gt;微動開關 x2&lt;/b&gt;&lt;br&gt;(軌道兩端安全限位)&lt;br&gt;&lt;hr&gt;&lt;div style='text-align:left;font-size:10px;'&gt;&lt;b&gt;Left SW&lt;/b&gt; → GPIO 16 (內部上拉)&lt;br&gt;&lt;b&gt;Right SW&lt;/b&gt; → GPIO 17 (內部上拉)&lt;br&gt;&lt;b&gt;COM&lt;/b&gt; → GND&lt;br&gt;&lt;i&gt;常開 (NO)，觸發時拉低為 LOW&lt;/i&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;fontSize=11;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="890" y="650" width="280" height="85" as="geometry"/>
+        </mxCell>
+
+        <!-- Limit to ESP32 -->
+        <mxCell id="lim_conn" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1;strokeColor=#666666;dashed=1;" edge="1" source="limit_sw" target="esp32" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="830" y="692"/>
+              <mxPoint x="830" y="430"/>
+              <mxPoint x="740" y="430"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lim_label" value="GPIO 16, 17" style="edgeLabel;html=1;fontSize=9;fontColor=#666666;" vertex="1" connectable="0" parent="lim_conn">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ==================== POWER DISTRIBUTION ==================== -->
+        <mxCell id="pwr_12v_to_driver" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=3;strokeColor=#CC0000;" edge="1" source="dc12v" target="tb6612" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="100"/>
+              <mxPoint x="840" y="100"/>
+              <mxPoint x="840" y="180"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pwr_12v_label" value="&lt;b&gt;12V Motor Power (VM)&lt;/b&gt;" style="edgeLabel;html=1;fontSize=10;fontColor=#CC0000;" vertex="1" connectable="0" parent="pwr_12v_to_driver">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- 3.3V to ESP32 -->
+        <mxCell id="pwr_33v_esp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" source="ams1117" target="esp32" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="340" y="227"/>
+              <mxPoint x="340" y="160"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pwr_33v_label" value="&lt;b&gt;3.3V&lt;/b&gt;" style="edgeLabel;html=1;fontSize=10;fontColor=#9673a6;" vertex="1" connectable="0" parent="pwr_33v_esp">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ==================== CONTROL FLOW DIAGRAM ==================== -->
+        <mxCell id="flow_title" value="&lt;b&gt;控制迴路架構 (Control Loop Architecture)&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="400" y="810" width="400" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Setpoint -->
+        <mxCell id="setpoint" value="&lt;b&gt;設定點&lt;/b&gt;&lt;br&gt;θ = 0° (直立)&lt;br&gt;x = center" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="870" width="130" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Error calculation -->
+        <mxCell id="error_calc" value="&lt;b&gt;誤差計算&lt;/b&gt;&lt;br&gt;e = r - y" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="230" y="870" width="120" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Kalman Filter -->
+        <mxCell id="kalman" value="&lt;b&gt;卡爾曼濾波器&lt;/b&gt;&lt;br&gt;Kalman Filter&lt;br&gt;(狀態估計)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="410" y="860" width="150" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- LQR Controller -->
+        <mxCell id="lqr" value="&lt;b&gt;LQR 控制器&lt;/b&gt;&lt;br&gt;u = -Kx̂&lt;br&gt;(最佳狀態回授)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="410" y="950" width="150" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Swing-up -->
+        <mxCell id="swingup" value="&lt;b&gt;擺起控制&lt;/b&gt;&lt;br&gt;Swing-Up&lt;br&gt;(能量法)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="950" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Switching Logic -->
+        <mxCell id="switch_logic" value="&lt;b&gt;切換邏輯&lt;/b&gt;&lt;br&gt;|θ| &lt; 30°? → LQR&lt;br&gt;|θ| ≥ 30°? → Swing-Up" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF9E6;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="810" y="860" width="170" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Motor/Plant -->
+        <mxCell id="plant" value="&lt;b&gt;受控體 (Plant)&lt;/b&gt;&lt;br&gt;DC Motor + Cart + Pendulum" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;fontStyle=0;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="885" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Sensors feedback -->
+        <mxCell id="sensors_fb" value="&lt;b&gt;感測器&lt;/b&gt;&lt;br&gt;MPU6050 + Encoders" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="980" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Flow connections -->
+        <mxCell id="f1" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#333333;" edge="1" source="setpoint" target="error_calc" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f2" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#333333;" edge="1" source="error_calc" target="kalman" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f3" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#333333;" edge="1" source="kalman" target="lqr" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f3_label" value="x̂ (估計狀態)" style="edgeLabel;html=1;fontSize=9;" vertex="1" connectable="0" parent="f3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="f4" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#333333;" edge="1" source="lqr" target="switch_logic" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f5" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#333333;" edge="1" source="swingup" target="switch_logic" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f6" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#333333;" edge="1" source="switch_logic" target="plant" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="f6_label" value="u (控制力)" style="edgeLabel;html=1;fontSize=9;" vertex="1" connectable="0" parent="f6">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="f7" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#333333;" edge="1" source="plant" target="sensors_fb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="f8" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#b85450;dashed=1;" edge="1" source="sensors_fb" target="error_calc" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1130" y="1060"/>
+              <mxPoint x="290" y="1060"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f8_label" value="&lt;b&gt;量測回授 y&lt;/b&gt; (θ, θ̇, x, ẋ)" style="edgeLabel;html=1;fontSize=10;fontColor=#b85450;" vertex="1" connectable="0" parent="f8">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ==================== LEGEND ==================== -->
+        <mxCell id="legend" value="&lt;b&gt;圖例 (Legend)&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;div style='text-align:left;font-size:10px;'&gt;🔴 &lt;b style='color:#CC0000'&gt;紅色粗線&lt;/b&gt; = 電源線 (12V/Power)&lt;br&gt;🟣 &lt;b style='color:#9673a6'&gt;紫色線&lt;/b&gt; = 3.3V 邏輯電源&lt;br&gt;🔵 &lt;b style='color:#0000CC'&gt;藍色線&lt;/b&gt; = I2C 通訊匯流排&lt;br&gt;🟠 &lt;b style='color:#FF6600'&gt;橘色線&lt;/b&gt; = PWM / 方向控制&lt;br&gt;🟢 &lt;b style='color:#009900'&gt;綠色虛線&lt;/b&gt; = 編碼器回授訊號&lt;br&gt;⚫ &lt;b style='color:#666666'&gt;灰色虛線&lt;/b&gt; = 限位開關訊號&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;fontSize=11;verticalAlign=top;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="800" width="280" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- Design Notes -->
+        <mxCell id="design_notes" value="&lt;b&gt;設計注意事項&lt;/b&gt;&lt;br&gt;&lt;hr&gt;&lt;div style='text-align:left;font-size:10px;'&gt;1. 馬達電源與邏輯電源分離，避免雜訊干擾&lt;br&gt;2. 12V 輸入端加 100μF 電解電容濾波&lt;br&gt;3. 3.3V 輸出端加 10μF 去耦電容&lt;br&gt;4. I2C 需 4.7kΩ 上拉電阻至 3.3V&lt;br&gt;5. 編碼器訊號建議加 0.1μF 濾波電容&lt;br&gt;6. 限位開關用 ESP32 內部上拉電阻&lt;br&gt;7. 控制迴路頻率目標: ≥ 500Hz&lt;br&gt;8. GND 星形接地，避免地迴路&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F9A825;fontSize=11;verticalAlign=top;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1000" width="300" height="180" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

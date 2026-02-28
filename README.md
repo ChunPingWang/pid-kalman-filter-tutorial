@@ -11,6 +11,7 @@ Level 1: PID 基礎          -> PoC 1 (溫度控制)
 Level 2: Kalman Filter 基礎 -> PoC 2 (感測器濾波)
 Level 3: PID + KF 整合      -> PoC 3 (馬達控制)
 Level 4: EKF 進階           -> PoC 4 (姿態估測)
+Level 5: 進階應用 — 倒單擺  -> 完整指南 (物理建模 → LQR → 實作)
 ```
 
 ---
@@ -248,6 +249,29 @@ K 接近 0 → 信任預測模型（R 大，感測器雜訊大）
 
 **適用場景**：無人機、自平衡機器人、船舶穩定系統、VR 頭顯追蹤
 
+### 場景 3.5：倒單擺平衡控制（Level 5）
+
+**情境**：將安裝在可移動滑車上的擺桿穩定在鉛直向上的不穩定平衡點
+
+```
+問題：
+  系統天生不穩定（開迴路極點在右半平面）
+  PID 只能處理小角度穩定，無法兼顧位置與角度
+  感測器（IMU + 編碼器）各有雜訊與漂移
+
+解法：
+  Phase 1：能量法 Swing-Up 控制 — 將擺桿從靜止擺到接近直立
+  Phase 2：LQR 全狀態回授 — 在直立附近進行最佳穩定控制
+  Phase 3：Kalman Filter 感測器融合 — 提供乾淨的狀態估測
+
+  完整控制架構：
+  IMU + Encoder -> Kalman Filter -> [Swing-Up | LQR 自動切換] -> 馬達 PWM
+```
+
+**適用場景**：控制理論教學、機器人平衡、火箭著陸姿態控制
+
+> 📖 完整指南請參考 [Inverted_Pendulum_Guide.md](Inverted_Pendulum_Guide.md)
+
 ### 場景 4：工業馬達精確控速
 
 **情境**：CNC 加工機的主軸馬達需要穩定在 12000 RPM
@@ -300,6 +324,7 @@ PID 調參考慮：
 | 電力系統 | 太陽能追日系統 | PID + KF 1D |
 | 汽車 | 定速巡航 (ACC) | PID + KF 2D |
 | 化工 | 反應釜溫度/壓力控制 | 多迴路 PID + KF |
+| 控制教學 | 倒單擺平衡控制 | PID + LQR + EKF |
 
 ---
 
@@ -326,6 +351,10 @@ PID 調參考慮：
 
 ### 方法二：Ziegler-Nichols 法
 
+Ziegler-Nichols 法是 1942 年由 John G. Ziegler 與 Nathaniel B. Nichols 在 ASME Transactions 發表的經典 PID 調參方法。至今仍是工業界最廣泛使用的 PID 調參起點，其核心思想是透過簡單的實驗量測系統特性，再查表得到 PID 參數的初始值。
+
+#### 變體一：Ultimate Gain Method（臨界增益法 — 閉迴路實驗）
+
 ```
 步驟 1：僅用 P 控制，增加 Kp 直到系統持續等幅振盪
 步驟 2：記錄臨界增益 Ku 和振盪週期 Tu
@@ -337,6 +366,59 @@ PID 調參考慮：
 | PI        | 0.45 * Ku   | 1.2 * Kp / Tu | -             |
 | PID       | 0.6 * Ku    | 2 * Kp / Tu   | Kp * Tu / 8   |
 ```
+
+#### 變體二：Step Response Method（階躍響應法 — 開迴路實驗）
+
+當系統無法安全地進行持續振盪實驗時，可使用開迴路階躍響應：
+
+```
+步驟 1：系統在開迴路下施加階躍輸入
+步驟 2：記錄 S 型響應曲線的兩個特徵參數：
+        - L（延遲時間）：從階躍施加到響應開始上升的時間
+        - T（時間常數）：響應從 L 到達 63.2% 穩態值的時間
+步驟 3：查表計算：
+
+| 控制器類型 | Kp        | Ti (積分時間) | Td (微分時間) |
+|-----------|-----------|--------------|--------------|
+| P only    | T / L     | -            | -            |
+| PI        | 0.9 * T/L | L / 0.3      | -            |
+| PID       | 1.2 * T/L | 2 * L        | 0.5 * L      |
+
+其中 Ki = Kp / Ti，Kd = Kp * Td
+```
+
+#### 操作注意事項
+
+- **安全考量**：臨界增益法需要系統持續等幅振盪，必須確保系統能承受（例如馬達不會損壞、溫度不會超過安全範圍）
+- **穩定振盪判定**：調整 Ku 時需等待穩定的等幅振盪（至少觀察 5-10 個週期），過早記錄會導致參數不準確
+- **數位系統取樣率**：控制迴路的取樣頻率至少應為振盪頻率（1/Tu）的 10 倍，否則離散化效應會使結果失真
+
+#### Z-N 的局限性與改良
+
+Ziegler-Nichols 法設計的目標是 **quarter-decay ratio**（每次振盪幅度衰減 75%），這意味著：
+- 典型超調量約 25%，許多精密控制應用無法接受
+- 對積分型系統（如水位控制）效果不佳
+- 不適用於開迴路不穩定系統（如倒單擺）
+- 對大延遲系統（L/T > 1）的效果較差
+
+**Tyreus-Luyben 改良版**（更保守、超調更小）：
+
+```
+| 控制器類型 | Kp         | Ti           | Td           |
+|-----------|------------|--------------|--------------|
+| PI        | Ku / 3.2   | 2.2 * Tu     | -            |
+| PID       | Ku / 2.2   | 2.2 * Tu     | Tu / 6.3     |
+```
+
+#### 與其他調參方法的比較
+
+| 方法 | 優點 | 缺點 | 適用場景 |
+|------|------|------|---------|
+| Ziegler-Nichols | 簡單、不需系統模型 | 需容忍振盪、超調約 25% | 一般工業過程 |
+| Cohen-Coon | 適合大延遲系統 | 需開迴路階躍測試 | 化工、熱處理 |
+| Lambda Tuning | 可指定閉迴路時間常數 | 需系統模型（一階+延遲） | 需要無超調的系統 |
+| SIMC (Skogestad) | 現代工業推薦標準、易用 | 稍複雜 | 通用推薦 |
+| 手動調參 | 最靈活、適應任何系統 | 依賴經驗、耗時 | 初學者學習、特殊系統 |
 
 ### 調參檢查清單
 
@@ -433,6 +515,32 @@ EKF：   每一步重新計算 Jacobian 矩陣（一階泰勒展開線性化）
 
 ---
 
+## Level 5：倒單擺控制系統（進階應用）
+
+完成 Level 1-4 後，倒單擺是整合所有知識的最佳挑戰。這個系統天生不穩定，必須依靠主動控制才能維持平衡，是驗證控制理論的經典載體。
+
+### 為什麼是 Level 5？
+
+| Level 1-4 基礎 | Level 5 對應應用 |
+|----------------|-----------------|
+| PID 控制器 (Level 1) | 小角度穩定的初步嘗試 → 理解 SISO 控制的極限 |
+| Kalman Filter (Level 2) | IMU + 編碼器感測器融合 → 乾淨的狀態估測 |
+| PID + KF 整合 (Level 3) | 感測器融合 → 控制器的完整閉迴路 |
+| EKF 進階 (Level 4) | 非線性姿態估測 → 擺桿角度的精確追蹤 |
+| **新增** | LQR 全狀態回授、Swing-Up 能量控制、LQG 分離設計 |
+
+### 硬體方案摘要
+
+- **主控**：ESP32（雙核 240MHz，Core 1 專用控制迴路 ≥500Hz）
+- **感測器**：MPU6050 (IMU) + 600P/R 旋轉編碼器 + 馬達編碼器
+- **驅動**：TB6612FNG + JGA25-371 DC 馬達 + GT2 同步帶
+- **預估成本**：約 $70-100 USD
+
+> 📖 完整的物理建模推導、LQR 設計、電路圖與實作指南：[Inverted_Pendulum_Guide.md](Inverted_Pendulum_Guide.md)
+> 🔧 電路圖（DrawIO 格式）：[inverted_pendulum_circuit.drawio](inverted_pendulum_circuit.drawio)
+
+---
+
 ## 系統架構
 
 ```
@@ -447,6 +555,8 @@ EKF：   每一步重新計算 Jacobian 矩陣（一階泰勒展開線性化）
 pid-kalman-filter-tutorial/
 |-- PID_KalmanFilter_Teaching_PoC.md   <- 完整教學文件 (理論 + 實作)
 |-- README.md                          <- 本文件
+|-- Inverted_Pendulum_Guide.md         <- Level 5: 倒單擺控制完整指南
+|-- inverted_pendulum_circuit.drawio   <- Level 5: 電路圖 (DrawIO 格式)
 |-- verify_all.sh                      <- 一鍵驗證腳本
 |
 |-- pid.h / pid.c                      <- PID 控制器 (Anti-Windup, Derivative on Measurement)
@@ -481,6 +591,7 @@ pid-kalman-filter-tutorial/
 | **PoC 2** | 1D Kalman Filter 濾波 | `kalman.c` | 任意感測器（或純模擬） | 入門 |
 | **PoC 3** | Kalman + PID 馬達控制 | `pid.c` + `kalman.c` | DC 馬達 + Encoder + H-Bridge | 中級 |
 | **PoC 4** | EKF 姿態估測 | `ekf_attitude.c` | MPU6050 (I2C) | 進階 |
+| **Level 5** | 倒單擺控制系統 | PID + LQR + EKF | ESP32 + MPU6050 + DC Motor + Encoder | 挑戰 |
 
 ## 支援平台
 
@@ -592,27 +703,71 @@ make run      # 執行 Python 模擬 + matplotlib 視覺化
 
 ## 前置知識
 
+**Level 1-4：**
 - C/C++ 基礎程式設計
 - 基本線性代數（矩陣運算）
 - 基本機率統計（常態分佈、變異數）
 - 嵌入式系統基礎（GPIO, ADC, PWM, I2C/SPI）
 
+**Level 5 額外需要：**
+- 拉格朗日力學基礎（廣義座標、Euler-Lagrange 方程）
+- 狀態空間控制理論（可控性、可觀性、極點配置）
+- 線性二次調節器（LQR）概念
+
 ## 參考資源
 
 ### 書籍
-- "Feedback Control of Dynamic Systems" - Franklin, Powell, Emami-Naeini
-- "Optimal State Estimation" - Dan Simon
-- "Probabilistic Robotics" - Thrun, Burgard, Fox
 
-### 線上教學
-- Roger Labbe - "Kalman and Bayesian Filters in Python" (GitHub)
-- Brett Beauregard - Arduino PID Library
-- Joan Sola - "Quaternion kinematics for the error-state Kalman filter"
+**PID 與控制系統：**
+- "Feedback Control of Dynamic Systems" - Franklin, Powell, Emami-Naeini（控制工程經典教材）
+- "Modern Control Engineering" - Katsuhiko Ogata（PID 到狀態空間，涵蓋範圍廣）
+- "Control Systems Engineering" - Norman Nise（工程導向，範例豐富，適合自學）
+
+**Kalman Filter 與狀態估測：**
+- "Optimal State Estimation" - Dan Simon（Kalman Filter 最完整的參考書）
+- "Probabilistic Robotics" - Thrun, Burgard, Fox（機器人領域的 KF/EKF 應用）
+
+**進階控制理論（Level 5）：**
+- "Applied Nonlinear Control" - Slotine, Li（滑模控制、自適應控制）
+- "Optimal Control Theory: An Introduction" - Donald Kirk（LQR 深入推導）
+- "Introduction to Autonomous Robots" - Nikolaus Correll et al.（機器人控制入門，免費線上版）
+
+### 線上課程與影片
+
+**基礎入門：**
+- Roger Labbe - "Kalman and Bayesian Filters in Python" (GitHub) — 互動式 Jupyter Notebook 教學
+- Brett Beauregard - Arduino PID Library — PID 實作的業界參考標準
+- MATLAB Tech Talk 系列 — PID Controller / Kalman Filter 專題影片，動畫解說清晰
+
+**控制理論系統課程：**
+- MIT OCW 6.003 / 6.302 — 信號與系統 / 回饋系統設計，MIT 開放式課程
+- Brian Douglas "Control Systems Lectures" (YouTube) — 強烈推薦，直觀動畫解說，從 Bode Plot 到狀態空間
+- Steve Brunton "Control Bootcamp" (YouTube) — 含 MATLAB 程式碼的 LQR / Kalman 教學，特別適合 Level 5
+
+**專題資源：**
+- Karl Johan Astrom & Tore Hagglund "PID Control" — PID 調參的權威參考，有線上版本
+- Joan Sola - "Quaternion kinematics for the error-state Kalman filter" — EKF 姿態估測的理論推導
 
 ### 工具
-- Arduino IDE 內建 Serial Plotter
-- Python: matplotlib, plotly
-- MATLAB/Simulink: PID Tuner, Kalman Filter Designer
+
+**開發與模擬：**
+- Arduino IDE 內建 Serial Plotter — 即時觀察 PID / KF 輸出波形
+- MATLAB/Simulink: PID Tuner, Kalman Filter Designer — 專業級調參與視覺化
+- GNU Octave + control toolbox — 免費的 MATLAB 替代方案，支援 LQR/Kalman 設計
+
+**Python 生態系：**
+- matplotlib / plotly — 數據視覺化與互動圖表
+- python-control library — Python 的控制系統工具箱（transfer function, state space, LQR）
+
+**機器人模擬器：**
+- Webots — 開源機器人模擬器，內建倒單擺範例
+- Gazebo — ROS 生態系的標準模擬器
+
+### 開源專案參考
+
+- **Arduino PID Library** (Brett Beauregard) — PID 實作的經典參考，本專案 `pid.c` 的設計靈感來源
+- **GitHub 搜尋關鍵字**：`inverted pendulum ESP32`、`cart pole LQR`、`kalman filter IMU`
+- **MathWorks Inverted Pendulum Example** — MATLAB/Simulink 官方範例，完整建模到控制流程
 
 ## License
 
