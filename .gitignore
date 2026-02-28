@@ -1,0 +1,30 @@
+# Build artifacts
+build/
+*.o
+*.so
+*.a
+*.dylib
+
+# Test output
+tests/output/*.csv
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# RPi generated
+rpi/libcontrol.so
+rpi/kalman_pid_result.png
+
+# BeagleBone binary
+beaglebone/poc_bbb
+beaglebone/data_log.csv
+
+# PlatformIO
+stm32/.pio/
